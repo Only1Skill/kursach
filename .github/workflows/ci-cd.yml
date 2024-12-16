@@ -54,5 +54,3 @@ jobs:
 
 
 
-    - name: Stop services
-      run: docker-compose down
