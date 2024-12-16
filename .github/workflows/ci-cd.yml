@@ -51,7 +51,7 @@ jobs:
         npm install
 
     - name: Start services
-      run: docker-compose up -d
+      run: docker-compose up 
 
     - name: Run tests
       run: |
