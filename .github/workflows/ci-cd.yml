@@ -35,8 +35,6 @@ jobs:
       with:
         node-version: '18'
 
-    - name: Start services
-      run: docker-compose up -d
 
     - name: Install dependencies (Frontend)
       run: |
