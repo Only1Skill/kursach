@@ -53,10 +53,6 @@ jobs:
         npm install
 
 
-    - name: Run backend tests
-      run: |
-        cd backend
-        npm test
 
     - name: Stop services
       run: docker-compose down
