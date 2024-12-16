@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main 
+      - main
   pull_request:
     branches:
       - main
@@ -11,52 +11,43 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      database:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: sportsdb
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h localhost" 
-          --health-interval=30s 
-          --health-timeout=10s 
-          --health-retries=5
-
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '18' 
-
-    - name: Install dependencies (Frontend)
+    - name: Set up Docker
       run: |
-        cd frontend
-        npm install
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
 
-    - name: Build frontend
+    - name: Install Docker Compose
       run: |
-        cd frontend
-        npm run build
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
 
-    - name: Install dependencies (Backend)
-      run: |
-        cd backend
-        npm install
+    - name: Pull Docker images
+      run: docker-compose pull
 
     - name: Start services
-      run: docker-compose up 
+      run: docker-compose up -d
+
+    - name: Wait for services to be ready
+      run: sleep 5  # or longer, depending on your services
 
     - name: Run tests
       run: |
+        cd frontend
+        npm install
+        npm test
+
+    - name: Run backend tests
+      run: |
         cd backend
-        npm test  # Замените на вашу команду тестирования
+        npm install
+        npm test
 
     - name: Stop services
       run: docker-compose down
