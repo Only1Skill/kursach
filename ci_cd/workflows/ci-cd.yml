@@ -1,0 +1,62 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main 
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      database:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: sportsdb
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost" 
+          --health-interval=30s 
+          --health-timeout=10s 
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18' 
+
+    - name: Install dependencies (Frontend)
+      run: |
+        cd frontend
+        npm install
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+
+    - name: Install dependencies (Backend)
+      run: |
+        cd backend
+        npm install
+
+    - name: Start services
+      run: docker-compose up -d
+
+    - name: Run tests
+      run: |
+        cd backend
+        npm test  # Замените на вашу команду тестирования
+
+    - name: Stop services
+      run: docker-compose down
